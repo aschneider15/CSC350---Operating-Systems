@@ -17,9 +17,9 @@ class Process {
 
             this->pid = pid;
             this->is_active = false;
-            this->arriv_time = rand() % 20 + 1;
+            this->arriv_time = rand() % 22 + 1;
             this->tot_cpu_time = 0;
-            this->rem_cpu_time = rand() % 50 + 1;
+            this->rem_cpu_time = rand() % 51 + 1;
             this->turnaround = 0;
         }
 

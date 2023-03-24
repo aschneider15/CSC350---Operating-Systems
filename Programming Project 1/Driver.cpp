@@ -20,7 +20,7 @@ int getTotalRemainingTime(vector<Process> v);
 
 
         for(int i = 0; i < 5; i++) {//initialize simulation table
-            Process p = Process( i + 1 );
+            Process p = Process(i);
             process_list.emplace_back(p);
         }
         /*
