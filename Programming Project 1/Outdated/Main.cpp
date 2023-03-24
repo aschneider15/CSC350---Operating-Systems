@@ -8,16 +8,9 @@ using namespace std;
 
 int main(){
     SimTable st;
-    while(st.getTotalRemainingTime > 0) {//simulation loop
-        /*
-        see if any processes are ready to run
-        if there is a process ready, activate it
-            set is_active to true
-            set arrival time to current time
-        If there are multiple active processes, figure out who gets to run
-        */    
-       cout << "hello world" << endl;
-    }
+    //while(st.getTotalRemainingTime() > 0) {//simulation loop
+        st.display();
+    //}
     cout << "hello world" << endl;
     return 0;
 }

@@ -9,10 +9,16 @@ class SimTable {
             unsigned int cpu_time_remaining;
             unsigned int turnaround_time; //departure time-arrival time
         };
-        
         Process processList[5];
         Process activeList[5];
+        Process runningProcess;
         unsigned int timetable;
+
+        void processesReady();
+        struct Process calculateSRT();
+        void changeActivation(Process p, bool active);
+        void setRunningProcess(Process &p);
+        void removeProcessFromActiveList(Process &p);
 
     public:
         SimTable();
@@ -21,5 +27,6 @@ class SimTable {
         unsigned int getAvgTurnaroundTime();
         unsigned int getAvgTotalCPUTime();
         unsigned char getTotalRemainingTime();
-
+        void runProcess();
+        void display();
 };
