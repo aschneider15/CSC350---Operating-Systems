@@ -21,18 +21,7 @@ bool free_specific_index(int * arr, int size, int index);
 bool free_specific_index(int * arr, int size, int index);
 
 int main() {
-    int response = -1;
-    while(response != 1 && response != 2) {
-            cout << "For best-fit, enter 1. For worst-fit, enter 2: ";
-            cin >> response;
-        if(response == 1) {
-            cout << "Best-fit selected." << endl;
-        } else if (response == 2) {
-            cout << "Worst-fit selected." << endl;
-        } else {
-            cout << "Invalid response! ";
-        }
-    }
+    
     int memory[64]; //set up the memory
     for(int i = 0; i <= 64; i++) {
         memory[i] = 0;
@@ -43,36 +32,46 @@ int main() {
 
     int success = 0;
     while(success < 5) {//generate five randomly placed items of random block size between 1 and 8
-        if (memory_allocate(memory, 64, rand() % 64, (rand() % 8) + 1)) {
+        if (memory_allocate(memory, 64, rand() % 64, (rand() % 7) + 2)) {
             success++;
         }
     }
-    memory_print(memory, 64);
 
     success = 0;
     bool go = true;
-    while(go && success < 50) { //"game loop"
-        if(response == 1) {
-            if(!best_fit(memory, 64, (rand() % 8) + 1)) {//if allocaiton fails
-                go = false;//stop the loop
-            }
-        }
-        if(response == 2) {
-            if(!worst_fit(memory, 64, (rand() % 8) + 1)) {//if allocation fails
-                go = false;//stop the loop
-            }
-        }
-        
-        //figure out how to free random chunks of memory
 
-        success++;
-        memory_print(memory, 64);
+    int response = -1;
+    while(response != 1 && response != 2) {
+            cout << "For best-fit, enter 1. For worst-fit, enter 2: ";
+            cin >> response;
+            memory_print(memory, 64);
+        if(response == 1) {
+            cout << "Best-fit selected." << endl;
+
+            while(go && success < 50) { //"game loop"
+                go = best_fit(memory, 64, (rand() % 7) + 2);
+                success++;
+                memory_print(memory, 64);
+            }
+            break;
+        } else if (response == 2) {
+            cout << "Worst-fit selected." << endl;
+
+            while(go && success < 50) { //"game loop"
+                go = worst_fit(memory, 64, (rand() % 7) + 2);
+                success++;
+                memory_print(memory, 64);
+            }
+            break;
+        } else {
+            cout << "Invalid response! ";
+        }
     }
 }
 
 bool memory_allocate(int * arr, int size, int index, int len) {
     int i = index;
-    while(i <= index + len) {//check to see if enough space
+    while(i < index + len) {//check to see if enough space
         if(arr[i] > 0 || i >= size) {
             perror("ERROR: ALLOCATION FAILED.");
             return false;
@@ -119,10 +118,17 @@ void memory_free(int * arr, int size, int index) {
 }
 
 void memory_print(int * arr, int size) {
+    char output[2*size];
     for(int i = 0; i < size; i++) {
-        cout << arr[i] << " ";
+            if(arr[i] > 0) {
+                output[i] = '*';
+            } else {
+                output[i] = '_';
+            }
+            //output[2*i + 1] = ' ';
     }
-    cout << endl;
+    cout << output << endl;
+    cout << "================================================================" << endl;
 }
 
 bool best_fit(int * arr, int size, int len) {
@@ -131,20 +137,21 @@ bool best_fit(int * arr, int size, int len) {
     int i = 0;//current index (starts at beginning)
     while(i < size) {
         if(arr[i] < 0) {//look for starting blocks of the gap
-            if(abs(arr[i] + len) < best && abs(arr[i] + len) >= len) {
-                best = abs(arr[i] + len);
+            if((-arr[i] < best) && (-arr[i] >= len)) {
+                best = abs(arr[i]);
                 index_best = i;
             }
         }
         i += abs(arr[i]);//allows faster advance 
                         //(i.e. value of "-4" would let you move ahead 4 indexes)
     }
-    if(index_best != -1) {
-        memory_allocate(arr, size, index_best, len); //allocates to the best-fitting index
-        return true;
+    if(index_best == -1) {
+        cout << "ERROR: NO HOLE BIG ENOUGH! SIZE NEEDED: " << len << endl;
+        return false;
     }
-    cout << "ERROR: NO HOLE BIG ENOUGH!" << endl;
-    return false;
+    //cout << "Allocated segment of size " << len << " at index " << index_best << endl;
+    memory_allocate(arr, size, index_best, len); //allocates to the best-fitting index
+    return true;
 }
 
 bool worst_fit(int * arr, int size, int len) {
@@ -153,18 +160,19 @@ bool worst_fit(int * arr, int size, int len) {
     int i = 0;//current index (starts at beginning)
     while(i < size) {
         if(arr[i] < 0) {//look for starting blocks of the gap
-            if(abs(arr[i] + len) > worst) {//took out    &&abs(arr[i] + len) >= len
-                worst = abs(arr[i] - len);
+            if((-arr[i] >= worst)) {//took out    &&abs(arr[i] + len) >= len
+                worst = -arr[i];
                 index_worst = i;
             }
         }
         i += abs(arr[i]);//allows faster advance 
                         //(i.e. value of "-4" would let you move ahead 4 indexes)
     }
-    if(index_worst != -1) {
-        memory_allocate(arr, size, index_worst, len); //allocates to the best-fitting index
-        return true;
+    if(index_worst == -1) {
+        cout << "ERROR: NO HOLE BIG ENOUGH! SIZE NEEDED: " << len << endl;
+        return false;
     }
-    cout << "ERROR: NO HOLE BIG ENOUGH!" << endl;
-    return false;
+    //cout << "Allocated segment of size " << len << " at index " << index_worst << endl;
+    memory_allocate(arr, size, index_worst, len); //allocates to the best-fitting index
+    return true;
 }
