@@ -1,9 +1,3 @@
-/*
-    to do:
-    6. Implement a means to calculate average memory utilization 
-        and search time
-    7. Implement the ability to free items randomly
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,8 +11,8 @@ void memory_free(int * arr, int size, int index);
 void memory_print(int * arr, int size);
 bool best_fit(int * arr, int size, int len);
 bool worst_fit(int * arr, int size, int len);
-bool free_specific_index(int * arr, int size, int index);
-bool free_specific_index(int * arr, int size, int index);
+int free_blocks(int * arr, int size, int lastfree);
+double get_memory_occupancy(int * arr, int size);
 
 int main() {
     
@@ -39,6 +33,8 @@ int main() {
 
     success = 0;
     bool go = true;
+    int lastfree = -1;//indicates last block of memory "randomly freed"
+    double avg = 0.0;
 
     int response = -1;
     while(response != 1 && response != 2) {
@@ -49,24 +45,33 @@ int main() {
             cout << "Best-fit selected." << endl;
 
             while(go && success < 50) { //"game loop"
+                lastfree = free_blocks(memory, 64, lastfree);
                 go = best_fit(memory, 64, (rand() % 7) + 2);
                 success++;
                 memory_print(memory, 64);
+                avg += get_memory_occupancy(memory, 64);
             }
             break;
         } else if (response == 2) {
             cout << "Worst-fit selected." << endl;
 
             while(go && success < 50) { //"game loop"
+                lastfree = free_blocks(memory, 64, lastfree);
                 go = worst_fit(memory, 64, (rand() % 7) + 2);
                 success++;
                 memory_print(memory, 64);
+                avg += get_memory_occupancy(memory, 64);
             }
             break;
         } else {
             cout << "Invalid response! ";
         }
     }
+    cout << "================================================================" << endl;
+    cout << "================================================================" << endl;
+    cout << "Average memory utilization: " << (avg /= 50) << endl;
+    cout << "================================================================" << endl;
+    cout << "================================================================" << endl;
 }
 
 bool memory_allocate(int * arr, int size, int index, int len) {
@@ -107,20 +112,14 @@ void memory_free(int * arr, int size, int index) {
     arr[index] = -count;//readjusts hole size
     //printf("overwrote chunk at index %d. (%d blocks)", index, count);
     //cannot call allocate here. Potential for recursion with no base case
-    i = index -1;
-    count = 0;
-    while(i > 0 && arr[i] == 1) {
-        arr[i] = 1;
-        i--;
-        count++;
-    }
-    arr[i] = count +1;//readjusts size of previous chunk in the case that it is overwritten
 }
 
 void memory_print(int * arr, int size) {
     char output[2*size];
     for(int i = 0; i < size; i++) {
-            if(arr[i] > 0) {
+            if(arr[i] > 1) {
+                output[i] = '#';
+            } else if(arr[i] == 1) {
                 output[i] = '*';
             } else {
                 output[i] = '_';
@@ -165,7 +164,8 @@ bool worst_fit(int * arr, int size, int len) {
                 index_worst = i;
             }
         }
-        i += abs(arr[i]);//allows faster advance 
+        i++;
+        //i += abs(arr[i]);//allows faster advance 
                         //(i.e. value of "-4" would let you move ahead 4 indexes)
     }
     if(index_worst == -1) {
@@ -175,4 +175,24 @@ bool worst_fit(int * arr, int size, int len) {
     //cout << "Allocated segment of size " << len << " at index " << index_worst << endl;
     memory_allocate(arr, size, index_worst, len); //allocates to the best-fitting index
     return true;
+}
+
+int free_blocks(int * arr, int size, int lastfree) {
+    int i = lastfree;
+    while(arr[i] <= 1) {
+        i = (i+1) % size; //loops back to index 0
+    }
+    memory_free(arr, size, i);
+    return i;
+}
+
+double get_memory_occupancy(int * arr, int size) {
+    double result;
+    for(int i = 0; i < size; i++) {
+        if(arr[i] > 0) {
+            result++;
+        }
+    }
+    result /= size;
+    return result;
 }
